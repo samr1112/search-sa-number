@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar">
 <head>
@@ -71,13 +70,13 @@
   </div>
 
   <script>
-    function search() {
+    async function search() {
       const phone = document.getElementById("phone").value.trim();
       const resultDiv = document.getElementById("result");
       const actionsDiv = document.getElementById("actions");
 
       if (!/^966\d+$/.test(phone)) {
-        resultDiv.textContent = "الرجاء إدخال رقم سعودي صحيح يبدأ بـ 966.";
+        resultDiv.textContent = "الرجاء إدخال رقم يبدأ بـ 966.";
         actionsDiv.style.display = "none";
         return;
       }
@@ -85,26 +84,30 @@
       resultDiv.textContent = "جاري البحث...";
       actionsDiv.style.display = "none";
 
-      const url = `https://corsproxy.io/?https://roda.website/mishkat_api.php?getName=true&phone=${phone}`;
-
-      fetch(url)
-        .then(res => res.json())
-        .then(data => {
-          if (data && data.name) {
-            resultDiv.innerHTML = `<i class="fas fa-user icon"></i>الاسم: ${data.name}`;
-            actionsDiv.style.display = "block";
-            document.getElementById("whatsappBtn").href = `https://wa.me/${phone}`;
-            document.getElementById("telegramBtn").href = `https://t.me/${phone}`;
-          } else {
-            resultDiv.textContent = "لم يتم العثور على اسم لهذا الرقم.";
-            actionsDiv.style.display = "none";
-          }
-        })
-        .catch(err => {
-          console.error(err);
+      let data = null;
+      try {
+        const direct = await fetch(`https://roda.website/mishkat_api.php?getName=true&phone=${phone}`);
+        data = await direct.json();
+      } catch (e1) {
+        try {
+          const proxy = await fetch(`https://corsproxy.io/?https://roda.website/mishkat_api.php?getName=true&phone=${phone}`);
+          data = await proxy.json();
+        } catch (e2) {
+          console.error(e2);
           resultDiv.textContent = "حدث خطأ أثناء الاتصال بالخدمة.";
-          actionsDiv.style.display = "none";
-        });
+          return;
+        }
+      }
+
+      if (data && data.name) {
+        resultDiv.innerHTML = `<i class="fas fa-user icon"></i>الاسم: ${data.name}`;
+        actionsDiv.style.display = "block";
+        document.getElementById("whatsappBtn").href = `https://wa.me/${phone}`;
+        document.getElementById("telegramBtn").href = `https://t.me/${phone}`;
+      } else {
+        resultDiv.textContent = "لم يتم العثور على اسم لهذا الرقم.";
+        actionsDiv.style.display = "none";
+      }
     }
 
     function saveContact() {
@@ -121,3 +124,5 @@
   </script>
 </body>
 </html>
+
+
