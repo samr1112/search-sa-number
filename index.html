@@ -11,7 +11,7 @@
       font-family: 'Tahoma', sans-serif;
       direction: rtl;
       text-align: center;
-      background: url('https://i.imgur.com/4aJkQx2.jpg') no-repeat center center fixed;
+      background: url('https://i.imgur.com/Dh7U4Kz.jpg') no-repeat center center fixed;
       background-size: cover;
       color: white;
       padding: 30px;
@@ -58,7 +58,7 @@
 <body>
   <div class="container">
     <h2>ابحث عن اسم المتصل السعودي</h2>
-    <input type="text" id="phone" placeholder="أدخل رقم سعودي مثل 9665xxxxxxxx" maxlength="12" />
+    <input type="text" id="phone" value="966" placeholder="أدخل رقم سعودي" />
     <br />
     <button class="btn-search" onclick="search()"><i class="fas fa-search icon"></i>بحث</button>
 
@@ -76,8 +76,8 @@
       const resultDiv = document.getElementById("result");
       const actionsDiv = document.getElementById("actions");
 
-      if (!/^9665\d{8}$/.test(phone)) {
-        resultDiv.textContent = "الرجاء إدخال رقم سعودي صحيح يبدأ بـ 9665 ويتكون من 12 رقمًا.";
+      if (!/^966\d+$/.test(phone)) {
+        resultDiv.textContent = "الرجاء إدخال رقم سعودي صحيح يبدأ بـ 966.";
         actionsDiv.style.display = "none";
         return;
       }
@@ -93,8 +93,6 @@
           if (data && data.name) {
             resultDiv.innerHTML = `<i class="fas fa-user icon"></i>الاسم: ${data.name}`;
             actionsDiv.style.display = "block";
-
-            // روابط أزرار التواصل
             document.getElementById("whatsappBtn").href = `https://wa.me/${phone}`;
             document.getElementById("telegramBtn").href = `https://t.me/${phone}`;
           } else {
