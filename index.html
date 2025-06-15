@@ -11,10 +11,11 @@
       font-family: 'Tahoma', sans-serif;
       direction: rtl;
       text-align: center;
-      background: url('https://i.imgur.com/Dh7U4Kz.jpg') no-repeat center center fixed;
-      background-size: cover;
+      background: linear-gradient(135deg, #4a00e0, #8e2de2);
       color: white;
       padding: 30px;
+      min-height: 100vh;
+      margin: 0;
     }
     .container {
       background-color: rgba(0, 0, 0, 0.65);
@@ -22,6 +23,7 @@
       border-radius: 20px;
       max-width: 500px;
       margin: auto;
+      box-shadow: 0 0 15px rgba(0,0,0,0.7);
     }
     input {
       padding: 10px;
@@ -39,11 +41,16 @@
       border-radius: 10px;
       cursor: pointer;
       color: white;
+      transition: background-color 0.3s ease;
     }
     .btn-search { background-color: #4CAF50; }
+    .btn-search:hover { background-color: #45a049; }
     .btn-save { background-color: #2196F3; }
+    .btn-save:hover { background-color: #0b7dda; }
     .btn-whatsapp { background-color: #25D366; }
+    .btn-whatsapp:hover { background-color: #1ebe56; }
     .btn-telegram { background-color: #0088cc; }
+    .btn-telegram:hover { background-color: #006b99; }
     #result {
       margin-top: 20px;
       font-size: 20px;
@@ -74,3 +81,58 @@
   <script>
     async function search() {
       const phone = document.getElementById("phone").value.trim();
+      const resultDiv = document.getElementById("result");
+      const actionsDiv = document.getElementById("actions");
+
+      if (phone === "") {
+        resultDiv.textContent = "الرجاء إدخال رقم الهاتف.";
+        actionsDiv.style.display = "none";
+        return;
+      }
+
+      resultDiv.textContent = "جاري البحث...";
+      actionsDiv.style.display = "none";
+
+      try {
+        const res = await fetch(`https://roda.website/mishkat_api.php?getName=true&phone=${phone}`);
+        const text = await res.text();
+
+        console.log("رد الخادم (حرفي):", text);
+
+        try {
+          const data = JSON.parse(text);
+          if (data && data.name) {
+            resultDiv.innerHTML = `<i class="fas fa-user icon"></i>الاسم: ${data.name}`;
+            actionsDiv.style.display = "block";
+            document.getElementById("whatsappBtn").href = `https://wa.me/${phone}`;
+            document.getElementById("telegramBtn").href = `https://t.me/${phone}`;
+          } else {
+            resultDiv.textContent = "لم يتم العثور على اسم لهذا الرقم.";
+            actionsDiv.style.display = "none";
+          }
+        } catch (jsonErr) {
+          console.error("خطأ في تحويل الرد إلى JSON:", jsonErr);
+          resultDiv.textContent = "فشل تحليل الرد. تحقق من الرد في وحدة التحكم (Console).";
+          actionsDiv.style.display = "none";
+        }
+      } catch (fetchErr) {
+        console.error("خطأ في الاتصال بالخدمة:", fetchErr);
+        resultDiv.textContent = "حدث خطأ أثناء الاتصال بالخدمة.";
+        actionsDiv.style.display = "none";
+      }
+    }
+
+    function saveContact() {
+      const phone = document.getElementById("phone").value.trim();
+      const name = document.getElementById("result").textContent.replace("الاسم: ", "");
+
+      const vcardData = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL;TYPE=CELL:${phone}\nEND:VCARD`;
+      const blob = new Blob([vcardData], { type: "text/vcard" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `${name}.vcf`;
+      link.click();
+    }
+  </script>
+</body>
+</html>
