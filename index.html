@@ -5,53 +5,85 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>البحث عن رقم سعودي</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     body {
-      font-family: sans-serif;
+      font-family: 'Tahoma', sans-serif;
       direction: rtl;
-      padding: 20px;
-      background: #f8f8f8;
       text-align: center;
+      background: url('https://i.imgur.com/4aJkQx2.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+      padding: 30px;
+    }
+    .container {
+      background-color: rgba(0, 0, 0, 0.65);
+      padding: 30px;
+      border-radius: 20px;
+      max-width: 500px;
+      margin: auto;
     }
     input {
       padding: 10px;
       font-size: 18px;
-      width: 80%;
-      margin-bottom: 10px;
+      width: 90%;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      border: none;
     }
     button {
       padding: 10px 20px;
       font-size: 18px;
+      border: none;
+      margin: 5px;
+      border-radius: 10px;
       cursor: pointer;
+      color: white;
     }
+    .btn-search { background-color: #4CAF50; }
+    .btn-save { background-color: #2196F3; }
+    .btn-whatsapp { background-color: #25D366; }
+    .btn-telegram { background-color: #0088cc; }
     #result {
       margin-top: 20px;
-      font-weight: bold;
-      color: green;
+      font-size: 20px;
+    }
+    .icon {
+      font-size: 24px;
+      margin-left: 8px;
+      vertical-align: middle;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h2>ابحث عن اسم المتصل السعودي</h2>
+    <input type="text" id="phone" placeholder="أدخل رقم سعودي مثل 9665xxxxxxxx" maxlength="12" />
+    <br />
+    <button class="btn-search" onclick="search()"><i class="fas fa-search icon"></i>بحث</button>
 
-  <h2>ابحث عن اسم المتصل برقم سعودي</h2>
-
-  <input type="text" id="phone" placeholder="أدخل الرقم (مثل 9665xxxxxxx)" />
-  <br />
-  <button onclick="search()">بحث</button>
-
-  <div id="result"></div>
+    <div id="result"></div>
+    <div id="actions" style="margin-top: 20px; display:none;">
+      <button class="btn-save" onclick="saveContact()"><i class="fas fa-save icon"></i>حفظ جهة الاتصال</button>
+      <a id="whatsappBtn" target="_blank"><button class="btn-whatsapp"><i class="fab fa-whatsapp icon"></i>واتساب</button></a>
+      <a id="telegramBtn" target="_blank"><button class="btn-telegram"><i class="fab fa-telegram icon"></i>تلغرام</button></a>
+    </div>
+  </div>
 
   <script>
     function search() {
       const phone = document.getElementById("phone").value.trim();
       const resultDiv = document.getElementById("result");
+      const actionsDiv = document.getElementById("actions");
 
-      if (!phone.startsWith("966")) {
-        resultDiv.textContent = "يرجى إدخال رقم سعودي يبدأ بـ 966";
+      if (!/^9665\d{8}$/.test(phone)) {
+        resultDiv.textContent = "الرجاء إدخال رقم سعودي صحيح يبدأ بـ 9665 ويتكون من 12 رقمًا.";
+        actionsDiv.style.display = "none";
         return;
       }
 
       resultDiv.textContent = "جاري البحث...";
+      actionsDiv.style.display = "none";
 
       const url = `https://corsproxy.io/?https://roda.website/mishkat_api.php?getName=true&phone=${phone}`;
 
@@ -59,17 +91,35 @@
         .then(res => res.json())
         .then(data => {
           if (data && data.name) {
-            resultDiv.textContent = `الاسم: ${data.name}`;
+            resultDiv.innerHTML = `<i class="fas fa-user icon"></i>الاسم: ${data.name}`;
+            actionsDiv.style.display = "block";
+
+            // روابط أزرار التواصل
+            document.getElementById("whatsappBtn").href = `https://wa.me/${phone}`;
+            document.getElementById("telegramBtn").href = `https://t.me/${phone}`;
           } else {
             resultDiv.textContent = "لم يتم العثور على اسم لهذا الرقم.";
+            actionsDiv.style.display = "none";
           }
         })
         .catch(err => {
           console.error(err);
-          resultDiv.textContent = "حدث خطأ أثناء الاتصال. تأكد من الاتصال بالإنترنت.";
+          resultDiv.textContent = "حدث خطأ أثناء الاتصال بالخدمة.";
+          actionsDiv.style.display = "none";
         });
     }
-  </script>
 
+    function saveContact() {
+      const phone = document.getElementById("phone").value.trim();
+      const name = document.getElementById("result").textContent.replace("الاسم: ", "");
+
+      const vcardData = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL;TYPE=CELL:${phone}\nEND:VCARD`;
+      const blob = new Blob([vcardData], { type: "text/vcard" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `${name}.vcf`;
+      link.click();
+    }
+  </script>
 </body>
 </html>
