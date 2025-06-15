@@ -1,102 +1,75 @@
 
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>البحث عن رقم سعودي</title>
   <style>
     body {
-      font-family: 'Tahoma', sans-serif;
-      background-color: #f2f2f2;
-      margin: 0;
+      font-family: sans-serif;
+      direction: rtl;
       padding: 20px;
+      background: #f8f8f8;
       text-align: center;
     }
-    h1 {
-      color: #222;
-    }
-    input[type="text"] {
+    input {
       padding: 10px;
-      width: 250px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 16px;
+      font-size: 18px;
+      width: 80%;
+      margin-bottom: 10px;
     }
     button {
       padding: 10px 20px;
-      background-color: #00a86b;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
+      font-size: 18px;
       cursor: pointer;
-      margin-right: 10px;
     }
-    button:hover {
-      background-color: #007d4f;
-    }
-    .results {
-      margin-top: 30px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-    }
-    .card {
-      background-color: white;
-      padding: 15px;
-      width: 90%;
-      max-width: 400px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      text-align: right;
+    #result {
+      margin-top: 20px;
+      font-weight: bold;
+      color: green;
     }
   </style>
 </head>
 <body>
-  <h1>ابحث عن رقم سعودي</h1>
-  <input type="text" id="phone" placeholder="أدخل الرقم بدون 966">
-  <button onclick="searchNumber()">بحث</button>
 
-  <div class="results" id="results"></div>
+  <h2>ابحث عن اسم المتصل برقم سعودي</h2>
+
+  <input type="text" id="phone" placeholder="أدخل الرقم (مثل 9665xxxxxxx)" />
+  <br />
+  <button onclick="search()">بحث</button>
+
+  <div id="result"></div>
 
   <script>
-    async function searchNumber() {
-      const phone = document.getElementById('phone').value.trim();
-      const resultsDiv = document.getElementById('results');
-      resultsDiv.innerHTML = '';
+    function search() {
+      const phone = document.getElementById("phone").value.trim();
+      const resultDiv = document.getElementById("result");
 
-      if (!phone.match(/^\d+$/)) {
-        resultsDiv.innerHTML = '<p style="color:red;">الرجاء إدخال رقم صحيح.</p>';
+      if (!phone.startsWith("966")) {
+        resultDiv.textContent = "يرجى إدخال رقم سعودي يبدأ بـ 966";
         return;
       }
 
-      const apiUrl = `https://corsproxy.io/?https://roda.website/mishkat_api.php?getName=true&phone=966${phone}`;
+      resultDiv.textContent = "جاري البحث...";
 
-      try {
-        const response = await fetch(apiUrl);
-        const data = await response.json();
+      const url = `https://corsproxy.io/?https://roda.website/mishkat_api.php?getName=true&phone=${phone}`;
 
-        if (data.response === "success" && data.data.length > 0) {
-          const namesSet = new Set();
-          data.data.forEach(entry => {
-            if (!namesSet.has(entry.name)) {
-              namesSet.add(entry.name);
-              const card = document.createElement('div');
-              card.className = 'card';
-              card.textContent = entry.name;
-              resultsDiv.appendChild(card);
-            }
-          });
-        } else {
-          resultsDiv.innerHTML = '<p>لا توجد نتائج.</p>';
-        }
-      } catch (error) {
-        resultsDiv.innerHTML = '<p style="color:red;">حدث خطأ أثناء الاتصال.</p>';
-        console.error(error);
-      }
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.name) {
+            resultDiv.textContent = `الاسم: ${data.name}`;
+          } else {
+            resultDiv.textContent = "لم يتم العثور على اسم لهذا الرقم.";
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          resultDiv.textContent = "حدث خطأ أثناء الاتصال. تأكد من الاتصال بالإنترنت.";
+        });
     }
   </script>
+
 </body>
 </html>
