@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>البحث عن رقم سعودي</title>
+  <style>
+    body {
+      font-family: 'Tahoma', sans-serif;
+      direction: rtl;
+      background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1280&q=80') no-repeat center center fixed;
+      background-size: cover;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    .container {
+      max-width: 500px;
+      margin: 50px auto;
+      background: rgba(255,255,255,0.95);
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      padding: 30px 20px;
+    }
+    h2 {
+      color: #333;
+    }
+    input {
+      padding: 12px;
+      font-size: 18px;
+      width: 90%;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      text-align: left;
+      direction: ltr;
+    }
+    button {
+      padding: 10px 25px;
+      font-size: 18px;
+      cursor: pointer;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 8px;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #result {
+      margin-top: 25px;
+      font-weight: bold;
+      color: green;
+      text-align: right;
+    }
+    .result-item {
+      background: #f0f0f0;
+      margin: 15px 0;
+      padding: 15px;
+      border-radius: 8px;
+      position: relative;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .actions {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+    }
+    .actions a {
+      text-decoration: none;
+      padding: 8px 12px;
+      margin: 5px;
+      border-radius: 6px;
+      color: white;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+    }
+    .save {
+      background-color: #28a745;
+    }
+    .whatsapp {
+      background-color: #25d366;
+    }
+    .telegram {
+      background-color: #0088cc;
+    }
+    .actions i {
+      margin-left: 6px;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="container">
+    <h2>ابحث عن اسم المتصل</h2>
+    <input type="text" id="phone" placeholder="أدخل الرقم مثل 9665xxxxxxx" />
+    <br />
+    <button onclick="search()">بحث</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    function search() {
+      const phone = document.getElementById("phone").value.trim();
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = "";
+
+      if (!phone.startsWith("966")) {
+        resultDiv.textContent = "يرجى إدخال رقم سعودي يبدأ بـ 966";
+        return;
+      }
+
+      resultDiv.textContent = "جاري البحث...";
+
+      const url = `https://corsproxy.io/?https://roda.website/mishkat_api.php?getName=true&phone=${phone}`;
+
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          if (data.response === "success" && Array.isArray(data.data) && data.data.length > 0) {
+            const uniqueNames = [...new Set(data.data.map(entry => entry.name))];
+            resultDiv.innerHTML = uniqueNames.map(name => 
+              `<div class='result-item'>
+                <div>${name}</div>
+                <div class='actions'>
+                  <a class='save' href="data:text/plain;charset=utf-8,${encodeURIComponent(name)}" download="contact.txt"><i class="fas fa-download"></i> حفظ</a>
+                  <a class='whatsapp' href="https://wa.me/?text=${encodeURIComponent(name)}" target="_blank"><i class="fab fa-whatsapp"></i> واتساب</a>
+                  <a class='telegram' href="https://t.me/share/url?url=${encodeURIComponent(name)}" target="_blank"><i class="fab fa-telegram-plane"></i> تيليجرام</a>
+                </div>
+              </div>`
+            ).join('');
+          } else {
+            resultDiv.textContent = "لم يتم العثور على اسم لهذا الرقم.";
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          resultDiv.textContent = "حدث خطأ أثناء الاتصال. تأكد من الاتصال بالإنترنت.";
+        });
+    }
+  </script>
+</body>
+</html>
