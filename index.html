@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="ar">
 <head>
@@ -7,122 +8,101 @@
   <title>البحث عن رقم سعودي</title>
   <style>
     body {
-      font-family: 'Tahoma', sans-serif;
+      font-family: sans-serif;
       direction: rtl;
-      background: #e0f7fa;
-      margin: 0;
       padding: 20px;
+      background: linear-gradient(to right, #e3f2fd, #fce4ec);
       text-align: center;
     }
-    .container {
-      max-width: 600px;
-      margin: auto;
-      background: #ffffff;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+
+    h2 {
+      color: #333;
     }
+
     input {
-      width: 80%;
       padding: 10px;
       font-size: 18px;
+      width: 80%;
       margin-bottom: 10px;
-      border-radius: 8px;
+      border-radius: 10px;
       border: 1px solid #ccc;
-      text-align: left;
-      direction: ltr;
     }
+
     button {
       padding: 10px 20px;
       font-size: 18px;
       cursor: pointer;
+      border-radius: 10px;
+      border: none;
       background-color: #2196f3;
       color: white;
-      border: none;
-      border-radius: 8px;
     }
+
     #result {
       margin-top: 20px;
-      text-align: right;
+      font-weight: bold;
+      color: #222;
     }
-    .result-item {
-      background: #f9f9f9;
+
+    .entry {
+      background-color: #fff;
+      margin: 10px auto;
       padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 500px;
     }
+
+    .entry span {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
     .actions {
-      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
     }
+
     .actions a, .actions button {
-      text-decoration: none;
-      padding: 8px 10px;
-      margin: 5px;
-      border-radius: 6px;
+      padding: 8px 12px;
       font-size: 14px;
-      display: inline-block;
-      color: white;
       border: none;
+      border-radius: 8px;
+      text-decoration: none;
+      color: white;
     }
-    .save { background-color: #4caf50; }
-    .whatsapp { background-color: #25d366; }
-    .telegram { background-color: #0088cc; }
+
+    .save {
+      background-color: #4caf50;
+    }
+
+    .whatsapp {
+      background-color: #25D366;
+    }
+
+    .telegram {
+      background-color: #0088cc;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>ابحث عن اسم المتصل برقم سعودي</h2>
-    <input type="text" id="phone" placeholder="أدخل الرقم مثل 9665xxxxxxx" />
-    <br />
-    <button onclick="search()">بحث</button>
-    <div id="result"></div>
-  </div>
+
+  <h2>ابحث عن اسم المتصل برقم سعودي</h2>
+
+  <input type="text" id="phone" placeholder="أدخل الرقم (مثل 9665xxxxxxx)" />
+  <br />
+  <button onclick="search()">بحث</button>
+
+  <div id="result"></div>
 
   <script>
-    function generateVCF(name, phone) {
-      return `BEGIN:VCARD\r\nVERSION:3.0\r\nFN:${name}\r\nTEL;TYPE=CELL:${phone}\r\nEND:VCARD\r\n`;
-    }
-
-    function createVCFBlob(name, phone) {
-      const vcf = generateVCF(name, phone);
-      return new Blob([vcf], { type: "text/vcard" });
-    }
-
-    function downloadVCF(name, phone) {
-      const blob = createVCFBlob(name, phone);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${name}.vcf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
-
-    function shareViaWhatsApp(name, phone) {
-      const blob = createVCFBlob(name, phone);
-      const file = new File([blob], `${name}.vcf`, { type: "text/vcard" });
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        navigator.share({
-          files: [file],
-          title: name,
-          text: `بطاقة جهة الاتصال: ${name}`,
-        });
-      } else {
-        alert("المشاركة عبر واتساب غير مدعومة مباشرة من المتصفح. الرجاء تحميل الملف ثم مشاركته.");
-      }
-    }
-
-    function shareViaTelegram(name, phone) {
-      alert("مشاركة ملفات vcf تلقائيًا في تيليجرام غير مدعومة مباشرة. الرجاء تحميل الملف يدويًا ومشاركته.");
-    }
-
     function search() {
       const phone = document.getElementById("phone").value.trim();
       const resultDiv = document.getElementById("result");
-      resultDiv.innerHTML = "";
 
       if (!phone.startsWith("966")) {
         resultDiv.textContent = "يرجى إدخال رقم سعودي يبدأ بـ 966";
@@ -136,38 +116,49 @@
       fetch(url)
         .then(res => res.json())
         .then(data => {
-          if (data.response === "success" && Array.isArray(data.data) && data.data.length > 0) {
-            const unique = [];
-            data.data.forEach(item => {
-              const key = `${item.name}-${item.phone}`;
-              if (!unique.find(e => e.key === key)) {
-                unique.push({ key, name: item.name, phone: phone });
-              }
+          if (data && data.data && data.data.length > 0) {
+            const unique = Array.from(new Map(data.data.map(item => [item.name + item.phone, item])).values());
+            resultDiv.innerHTML = '';
+            unique.forEach(entry => {
+              const div = document.createElement('div');
+              div.className = 'entry';
+              div.innerHTML = `
+                <span>📱 ${entry.phone} — 👤 ${entry.name}</span>
+                <div class="actions">
+                  <button class="save" onclick="downloadVCF('${entry.name}', '${entry.phone}')">📥 حفظ جهة اتصال</button>
+                  <a class="whatsapp" href="https://wa.me/${entry.phone}" target="_blank">💬 واتساب</a>
+                  <a class="telegram" href="https://t.me/+${entry.phone}" target="_blank">💬 تيليجرام</a>
+                </div>
+              `;
+              resultDiv.appendChild(div);
             });
-
-            resultDiv.innerHTML = unique.map(entry => `
-              <div class="result-item">
-                <div><strong>${entry.phone}</strong> - ${entry.name}</div>
-<!-- داخل resultDiv map entry -->
-<div class="actions">
-  <button class="save" onclick="downloadVCF('${entry.name}', '${entry.phone}')">📥 حفظ جهة اتصال</button>
-  <a class="whatsapp" href="https://wa.me/${entry.phone}" target="_blank">💬 واتساب</a>
-  <a class="telegram" href="https://t.me/+${entry.phone}" target="_blank">💬 تيليجرام</a>
-</div>
-
-
-    
-              </div>
-            `).join('');
           } else {
             resultDiv.textContent = "لم يتم العثور على اسم لهذا الرقم.";
           }
         })
-        .catch(error => {
-          console.error(error);
+        .catch(err => {
+          console.error(err);
           resultDiv.textContent = "حدث خطأ أثناء الاتصال. تأكد من الاتصال بالإنترنت.";
         });
     }
+
+    function downloadVCF(name, phone) {
+      const vcfData = `BEGIN:VCARD
+VERSION:3.0
+FN:${name}
+TEL;TYPE=CELL:${phone}
+END:VCARD`;
+
+      const blob = new Blob([vcfData], { type: 'text/vcard' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${name}.vcf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
   </script>
+
 </body>
 </html>
