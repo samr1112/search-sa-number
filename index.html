@@ -1,1 +1,140 @@
-<!-- سيتم وضع الكود المعدل هنا (نفس الكود السابق مع التعديلات المطلوبة) -->
+
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>البحث عن رقم سعودي</title>
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/597/597177.png"/>
+  <style>
+    body {
+      font-family: 'Tahoma', sans-serif;
+      direction: rtl;
+      padding: 20px;
+      background: linear-gradient(to bottom, #e6f0ff, #ffffff);
+      text-align: center;
+      color: #222;
+    }
+    input {
+      padding: 10px;
+      font-size: 18px;
+      width: 80%;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+    }
+    #result {
+      margin-top: 20px;
+    }
+    .entry {
+      background: #f1f1f1;
+      margin: 10px auto;
+      padding: 10px;
+      border-radius: 10px;
+      max-width: 90%;
+      box-shadow: 1px 1px 5px rgba(0,0,0,0.1);
+    }
+    .buttons {
+      margin-top: 5px;
+    }
+    .buttons button {
+      margin: 2px;
+      font-size: 14px;
+      padding: 6px 12px;
+      border-radius: 6px;
+    }
+    .small-note {
+      margin-top: 20px;
+      color: #777;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>ابحث عن اسم المتصل برقم سعودي</h2>
+
+  <input type="text" id="phone" placeholder="أدخل الرقم (مثل 9665xxxxxxx)" />
+  <br />
+  <button onclick="search()">بحث</button>
+
+  <div id="result"></div>
+  <div class="small-note" id="searchCount"></div>
+
+  <script>
+    let searchCounter = 0;
+    function search() {
+      const phone = document.getElementById("phone").value.trim();
+      const resultDiv = document.getElementById("result");
+
+      if (!phone.startsWith("966")) {
+        resultDiv.textContent = "يرجى إدخال رقم سعودي يبدأ بـ 966";
+        return;
+      }
+
+      resultDiv.innerHTML = "جاري البحث...";
+
+      const url = `https://corsproxy.io/?https://roda.website/mishkat_api.php?getName=true&phone=${phone}`;
+
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.data && data.data.length) {
+            const unique = {};
+            const filtered = data.data.filter(entry => {
+              if (!unique[entry.name]) {
+                unique[entry.name] = true;
+                return true;
+              }
+              return false;
+            });
+
+            resultDiv.innerHTML = '';
+            filtered.forEach(entry => {
+              const contactName = entry.name;
+              const contactNumber = entry.phone;
+              const vcardContent = `BEGIN:VCARD\nVERSION:3.0\nFN:${contactName}\nTEL:${contactNumber}\nEND:VCARD`;
+              const blob = new Blob([vcardContent], { type: 'text/vcard' });
+              const url = URL.createObjectURL(blob);
+
+              const div = document.createElement("div");
+              div.className = "entry";
+              div.innerHTML = `<strong>${contactNumber}</strong> - ${contactName}<br>
+                <div class="buttons">
+                  <a href="${url}" download="${contactName}.vcf">
+                    <button>📥 حفظ</button>
+                  </a>
+                  <a href="https://wa.me/${contactNumber}" target="_blank">
+                    <button style="background-color:#25D366;">💬 واتساب</button>
+                  </a>
+                  <a href="https://t.me/${contactNumber}" target="_blank">
+                    <button style="background-color:#0088cc;">📩 تليجرام</button>
+                  </a>
+                </div>`;
+              resultDiv.appendChild(div);
+            });
+            searchCounter++;
+            document.getElementById("searchCount").textContent = `عدد عمليات البحث: ${searchCounter}`;
+          } else {
+            resultDiv.textContent = "لم يتم العثور على اسم لهذا الرقم.";
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          resultDiv.textContent = "حدث خطأ أثناء الاتصال. تأكد من الاتصال بالإنترنت.";
+        });
+    }
+  </script>
+
+</body>
+</html>
