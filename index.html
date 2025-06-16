@@ -148,11 +148,15 @@
             resultDiv.innerHTML = unique.map(entry => `
               <div class="result-item">
                 <div><strong>${entry.phone}</strong> - ${entry.name}</div>
-                <div class="actions">
-                  <button class="save" onclick="downloadVCF('${entry.name}', '${entry.phone}')">📥 حفظ جهة اتصال</button>
-                  <button class="whatsapp" onclick="shareViaWhatsApp('${entry.name}', '${entry.phone}')">📤 واتساب</button>
-                  <button class="telegram" onclick="shareViaTelegram('${entry.name}', '${entry.phone}')">📤 تيليجرام</button>
-                </div>
+<!-- داخل resultDiv map entry -->
+<div class="actions">
+  <button class="save" onclick="downloadVCF('${entry.name}', '${entry.phone}')">📥 حفظ جهة اتصال</button>
+  <a class="whatsapp" href="https://wa.me/${entry.phone}" target="_blank">💬 واتساب</a>
+  <a class="telegram" href="https://t.me/+${entry.phone}" target="_blank">💬 تيليجرام</a>
+</div>
+
+
+    
               </div>
             `).join('');
           } else {
