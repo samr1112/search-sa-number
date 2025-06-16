@@ -9,94 +9,69 @@
     body {
       font-family: 'Tahoma', sans-serif;
       direction: rtl;
-      background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1280&q=80') no-repeat center center fixed;
-      background-size: cover;
+      background: #e0f7fa;
       margin: 0;
-      padding: 0;
+      padding: 20px;
       text-align: center;
     }
     .container {
-      max-width: 500px;
-      margin: 50px auto;
-      background: rgba(255,255,255,0.95);
+      max-width: 600px;
+      margin: auto;
+      background: #ffffff;
+      padding: 30px;
       border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      padding: 30px 20px;
-    }
-    h2 {
-      color: #333;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
     input {
-      padding: 12px;
+      width: 80%;
+      padding: 10px;
       font-size: 18px;
-      width: 90%;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
+      margin-bottom: 10px;
       border-radius: 8px;
+      border: 1px solid #ccc;
       text-align: left;
       direction: ltr;
     }
     button {
-      padding: 10px 25px;
+      padding: 10px 20px;
       font-size: 18px;
       cursor: pointer;
-      border: none;
-      background-color: #007bff;
+      background-color: #2196f3;
       color: white;
+      border: none;
       border-radius: 8px;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #0056b3;
     }
     #result {
-      margin-top: 25px;
-      font-weight: bold;
-      color: green;
+      margin-top: 20px;
       text-align: right;
     }
     .result-item {
-      background: #f0f0f0;
-      margin: 15px 0;
+      background: #f9f9f9;
       padding: 15px;
       border-radius: 8px;
-      position: relative;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
     .actions {
       margin-top: 10px;
-      display: flex;
-      justify-content: space-around;
-      flex-wrap: wrap;
     }
     .actions a {
       text-decoration: none;
-      padding: 8px 12px;
+      padding: 8px 10px;
       margin: 5px;
       border-radius: 6px;
-      color: white;
       font-size: 14px;
-      display: inline-flex;
-      align-items: center;
+      display: inline-block;
+      color: white;
     }
-    .save {
-      background-color: #28a745;
-    }
-    .whatsapp {
-      background-color: #25d366;
-    }
-    .telegram {
-      background-color: #0088cc;
-    }
-    .actions i {
-      margin-left: 6px;
-    }
+    .save { background-color: #4caf50; }
+    .whatsapp { background-color: #25d366; }
+    .telegram { background-color: #0088cc; }
   </style>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <div class="container">
-    <h2>ابحث عن اسم المتصل</h2>
+    <h2>ابحث عن اسم المتصل برقم سعودي</h2>
     <input type="text" id="phone" placeholder="أدخل الرقم مثل 9665xxxxxxx" />
     <br />
     <button onclick="search()">بحث</button>
@@ -104,6 +79,22 @@
   </div>
 
   <script>
+    function createVCF(name, phone) {
+      return `BEGIN:VCARD\\nVERSION:3.0\\nFN:${name}\\nTEL;TYPE=CELL:${phone}\\nEND:VCARD`;
+    }
+
+    function downloadVCF(name, phone) {
+      const vcfContent = createVCF(name, phone).replace(/\\n/g, "\\r\\n");
+      const blob = new Blob([vcfContent], { type: "text/vcard" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${name}.vcf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
     function search() {
       const phone = document.getElementById("phone").value.trim();
       const resultDiv = document.getElementById("result");
@@ -122,23 +113,34 @@
         .then(res => res.json())
         .then(data => {
           if (data.response === "success" && Array.isArray(data.data) && data.data.length > 0) {
-            const uniqueNames = [...new Set(data.data.map(entry => entry.name))];
-            resultDiv.innerHTML = uniqueNames.map(name => 
-              `<div class='result-item'>
-                <div>${name}</div>
-                <div class='actions'>
-                  <a class='save' href="data:text/plain;charset=utf-8,${encodeURIComponent(name)}" download="contact.txt"><i class="fas fa-download"></i> حفظ</a>
-                  <a class='whatsapp' href="https://wa.me/?text=${encodeURIComponent(name)}" target="_blank"><i class="fab fa-whatsapp"></i> واتساب</a>
-                  <a class='telegram' href="https://t.me/share/url?url=${encodeURIComponent(name)}" target="_blank"><i class="fab fa-telegram-plane"></i> تيليجرام</a>
+            const unique = [];
+            data.data.forEach(item => {
+              const key = `${item.name}-${item.phone}`;
+              if (!unique.find(e => e.key === key)) {
+                unique.push({ key, name: item.name, phone: phone });
+              }
+            });
+
+            resultDiv.innerHTML = unique.map(entry => {
+              const vcf = createVCF(entry.name, entry.phone);
+              const vcfEncoded = encodeURIComponent(vcf);
+              return `
+                <div class="result-item">
+                  <div><strong>${entry.phone}</strong> - ${entry.name}</div>
+                  <div class="actions">
+                    <a href="#" class="save" onclick="downloadVCF('${entry.name}', '${entry.phone}')">📥 حفظ جهة اتصال</a>
+                    <a href="https://wa.me/?text=${vcfEncoded}" class="whatsapp" target="_blank">📤 واتساب</a>
+                    <a href="https://t.me/share/url?url=${vcfEncoded}" class="telegram" target="_blank">📤 تيليجرام</a>
+                  </div>
                 </div>
-              </div>`
-            ).join('');
+              `;
+            }).join('');
           } else {
             resultDiv.textContent = "لم يتم العثور على اسم لهذا الرقم.";
           }
         })
-        .catch(err => {
-          console.error(err);
+        .catch(error => {
+          console.error(error);
           resultDiv.textContent = "حدث خطأ أثناء الاتصال. تأكد من الاتصال بالإنترنت.";
         });
     }
