@@ -55,7 +55,7 @@
     .actions {
       margin-top: 10px;
     }
-    .actions a {
+    .actions a, .actions button {
       text-decoration: none;
       padding: 8px 10px;
       margin: 5px;
@@ -63,6 +63,7 @@
       font-size: 14px;
       display: inline-block;
       color: white;
+      border: none;
     }
     .save { background-color: #4caf50; }
     .whatsapp { background-color: #25d366; }
@@ -79,13 +80,17 @@
   </div>
 
   <script>
-    function createVCF(name, phone) {
-      return `BEGIN:VCARD\\nVERSION:3.0\\nFN:${name}\\nTEL;TYPE=CELL:${phone}\\nEND:VCARD`;
+    function generateVCF(name, phone) {
+      return `BEGIN:VCARD\r\nVERSION:3.0\r\nFN:${name}\r\nTEL;TYPE=CELL:${phone}\r\nEND:VCARD\r\n`;
+    }
+
+    function createVCFBlob(name, phone) {
+      const vcf = generateVCF(name, phone);
+      return new Blob([vcf], { type: "text/vcard" });
     }
 
     function downloadVCF(name, phone) {
-      const vcfContent = createVCF(name, phone).replace(/\\n/g, "\\r\\n");
-      const blob = new Blob([vcfContent], { type: "text/vcard" });
+      const blob = createVCFBlob(name, phone);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -93,6 +98,25 @@
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+    }
+
+    function shareViaWhatsApp(name, phone) {
+      const blob = createVCFBlob(name, phone);
+      const file = new File([blob], `${name}.vcf`, { type: "text/vcard" });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({
+          files: [file],
+          title: name,
+          text: `بطاقة جهة الاتصال: ${name}`,
+        });
+      } else {
+        alert("المشاركة عبر واتساب غير مدعومة مباشرة من المتصفح. الرجاء تحميل الملف ثم مشاركته.");
+      }
+    }
+
+    function shareViaTelegram(name, phone) {
+      alert("مشاركة ملفات vcf تلقائيًا في تيليجرام غير مدعومة مباشرة. الرجاء تحميل الملف يدويًا ومشاركته.");
     }
 
     function search() {
@@ -121,20 +145,16 @@
               }
             });
 
-            resultDiv.innerHTML = unique.map(entry => {
-              const vcf = createVCF(entry.name, entry.phone);
-              const vcfEncoded = encodeURIComponent(vcf);
-              return `
-                <div class="result-item">
-                  <div><strong>${entry.phone}</strong> - ${entry.name}</div>
-                  <div class="actions">
-                    <a href="#" class="save" onclick="downloadVCF('${entry.name}', '${entry.phone}')">📥 حفظ جهة اتصال</a>
-                    <a href="https://wa.me/?text=${vcfEncoded}" class="whatsapp" target="_blank">📤 واتساب</a>
-                    <a href="https://t.me/share/url?url=${vcfEncoded}" class="telegram" target="_blank">📤 تيليجرام</a>
-                  </div>
+            resultDiv.innerHTML = unique.map(entry => `
+              <div class="result-item">
+                <div><strong>${entry.phone}</strong> - ${entry.name}</div>
+                <div class="actions">
+                  <button class="save" onclick="downloadVCF('${entry.name}', '${entry.phone}')">📥 حفظ جهة اتصال</button>
+                  <button class="whatsapp" onclick="shareViaWhatsApp('${entry.name}', '${entry.phone}')">📤 واتساب</button>
+                  <button class="telegram" onclick="shareViaTelegram('${entry.name}', '${entry.phone}')">📤 تيليجرام</button>
                 </div>
-              `;
-            }).join('');
+              </div>
+            `).join('');
           } else {
             resultDiv.textContent = "لم يتم العثور على اسم لهذا الرقم.";
           }
