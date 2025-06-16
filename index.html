@@ -4,135 +4,72 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>البحث عن رقم</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <title>البحث عن رقم سعودي</title>
   <style>
     body {
-      font-family: 'Tahoma', sans-serif;
+      font-family: sans-serif;
       direction: rtl;
+      padding: 20px;
+      background: #f8f8f8;
       text-align: center;
-      background: linear-gradient(135deg, #4a00e0, #8e2de2);
-      color: white;
-      padding: 30px;
-      min-height: 100vh;
-      margin: 0;
-    }
-    .container {
-      background-color: rgba(0, 0, 0, 0.65);
-      padding: 30px;
-      border-radius: 20px;
-      max-width: 500px;
-      margin: auto;
-      box-shadow: 0 0 15px rgba(0,0,0,0.7);
     }
     input {
       padding: 10px;
       font-size: 18px;
-      width: 90%;
-      border-radius: 10px;
-      margin-bottom: 15px;
-      border: none;
+      width: 80%;
+      margin-bottom: 10px;
     }
     button {
       padding: 10px 20px;
       font-size: 18px;
-      border: none;
-      margin: 5px;
-      border-radius: 10px;
       cursor: pointer;
-      color: white;
-      transition: background-color 0.3s ease;
     }
-    .btn-search { background-color: #4CAF50; }
-    .btn-search:hover { background-color: #45a049; }
-    .btn-save { background-color: #2196F3; }
-    .btn-save:hover { background-color: #0b7dda; }
-    .btn-whatsapp { background-color: #25D366; }
-    .btn-whatsapp:hover { background-color: #1ebe56; }
-    .btn-telegram { background-color: #0088cc; }
-    .btn-telegram:hover { background-color: #006b99; }
     #result {
       margin-top: 20px;
-      font-size: 20px;
-      min-height: 24px;
-    }
-    .icon {
-      font-size: 24px;
-      margin-left: 8px;
-      vertical-align: middle;
+      font-weight: bold;
+      color: green;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>ابحث عن اسم المتصل</h2>
-    <input type="text" id="phone" placeholder="أدخل رقم الهاتف" />
-    <br />
-    <button class="btn-search" onclick="search()"><i class="fas fa-search icon"></i>بحث</button>
 
-    <div id="result"></div>
-    <div id="actions" style="margin-top: 20px; display:none;">
-      <button class="btn-save" onclick="saveContact()"><i class="fas fa-save icon"></i>حفظ جهة الاتصال</button>
-      <a id="whatsappBtn" target="_blank"><button class="btn-whatsapp"><i class="fab fa-whatsapp icon"></i>واتساب</button></a>
-      <a id="telegramBtn" target="_blank"><button class="btn-telegram"><i class="fab fa-telegram icon"></i>تلغرام</button></a>
-    </div>
-  </div>
+  <h2>ابحث عن اسم المتصل برقم سعودي</h2>
+
+  <input type="text" id="phone" placeholder="أدخل الرقم (مثل 9665xxxxxxx)" />
+  <br />
+  <button onclick="search()">بحث</button>
+
+  <div id="result"></div>
 
   <script>
-    async function search() {
+    function search() {
       const phone = document.getElementById("phone").value.trim();
       const resultDiv = document.getElementById("result");
-      const actionsDiv = document.getElementById("actions");
 
-      if (phone === "") {
-        resultDiv.textContent = "الرجاء إدخال رقم الهاتف.";
-        actionsDiv.style.display = "none";
+      if (!phone.startsWith("966")) {
+        resultDiv.textContent = "يرجى إدخال رقم سعودي يبدأ بـ 966";
         return;
       }
 
       resultDiv.textContent = "جاري البحث...";
-      actionsDiv.style.display = "none";
 
-      try {
-        const res = await fetch(`https://roda.website/mishkat_api.php?getName=true&phone=${phone}`);
-        const text = await res.text();
+      const url = `https://corsproxy.io/?https://roda.website/mishkat_api.php?getName=true&phone=${phone}`;
 
-        console.log("رد الخادم (حرفي):", text);
-
-        try {
-          const data = JSON.parse(text);
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
           if (data && data.name) {
-            resultDiv.innerHTML = `<i class="fas fa-user icon"></i>الاسم: ${data.name}`;
-            actionsDiv.style.display = "block";
-            document.getElementById("whatsappBtn").href = `https://wa.me/${phone}`;
-            document.getElementById("telegramBtn").href = `https://t.me/${phone}`;
+            resultDiv.textContent = `الاسم: ${data.name}`;
           } else {
             resultDiv.textContent = "لم يتم العثور على اسم لهذا الرقم.";
-            actionsDiv.style.display = "none";
           }
-        } catch (jsonErr) {
-          console.error("خطأ في تحويل الرد إلى JSON:", jsonErr);
-          resultDiv.textContent = "فشل تحليل الرد. تحقق من الرد في وحدة التحكم (Console).";
-          actionsDiv.style.display = "none";
-        }
-      } catch (fetchErr) {
-        console.error("خطأ في الاتصال بالخدمة:", fetchErr);
-        resultDiv.textContent = "حدث خطأ أثناء الاتصال بالخدمة.";
-        actionsDiv.style.display = "none";
-      }
-    }
-
-    function saveContact() {
-      const phone = document.getElementById("phone").value.trim();
-      const name = document.getElementById("result").textContent.replace("الاسم: ", "");
-
-      const vcardData = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL;TYPE=CELL:${phone}\nEND:VCARD`;
-      const blob = new Blob([vcardData], { type: "text/vcard" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `${name}.vcf`;
-      link.click();
+        })
+        .catch(err => {
+          console.error(err);
+          resultDiv.textContent = "حدث خطأ أثناء الاتصال. تأكد من الاتصال بالإنترنت.";
+        });
     }
   </script>
+
 </body>
 </html>
