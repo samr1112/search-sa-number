@@ -126,10 +126,11 @@ END:VCARD`;
       const resultDiv = document.getElementById("result");
       const searchBtn = document.getElementById("searchBtn");
 
-      if (!phone.startsWith("966")) {
-        resultDiv.textContent = "يرجى إدخال رقم سعودي يبدأ بـ 966";
-        return;
-      }
+      if (!/^966\d{8,9}$/.test(phone)) {
+  resultDiv.textContent = "يرجى إدخال رقم سعودي صحيح يتكون من 12 رقماً (مثل: 9665xxxxxxx)";
+  return;
+}
+
 
       resultDiv.textContent = "جاري البحث...";
       searchBtn.disabled = true;
